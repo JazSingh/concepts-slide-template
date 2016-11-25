@@ -1,7 +1,7 @@
 ---
-author: Author name here
-title: Concepts of programming languages
-subtitle: My title here
+author: Steven Both, Toby Rufinus, Jaspreet Singh, Daniël Stekelenburg
+title: Scala
+subtitle: Lightweight Modular Scaling
 theme: uucs
 mainfont: Ubuntu Light
 sansfont: Ubuntu Light
