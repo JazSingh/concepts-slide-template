@@ -1,13 +1,13 @@
 ---
 author: Steven Both, Toby Rufinus, Jaspreet Singh, Daniël Stekelenburg
 title: Scala
-subtitle: Lightweight Modular Scaling
+subtitle: Lightweight Modular Staging
 theme: uucs
 mainfont: Ubuntu Light
 sansfont: Ubuntu Light
 ---
 
-Please use Markdown to write your slides. 
+Please use Markdown to write your slides.
 
 This makes sure that slides will be consistent -- and easy for me to
 edit in the future.
