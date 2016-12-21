@@ -1,0 +1,5 @@
+What is Lightweight Modular Staging?
+How is it implemented in Scala?
+How is it used for embedding compilers in Scala?
+What DSLs are implemented in this style?
+How does it compare to other approaches to implementing DSLs that we have seen?
