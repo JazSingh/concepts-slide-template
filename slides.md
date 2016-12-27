@@ -19,6 +19,12 @@ Lightweight Modular Staging (LMS)
 
 ---
 
+#LMS is..
+
+'A library-based multi-stage programming approach that uses types to distinguish between binding time.'
+
+---
+
 #Outline
 
 * A gentle introduction to LMS
@@ -30,13 +36,32 @@ Lightweight Modular Staging (LMS)
 
 #A gentle introduction to LMS
 
-content
+##Power function in Scala
+
+```Scala
+def power(b: Double, x: Int): Double =
+  if (x == 0) 1.0 else b * power(b, x - 1)
+```
+
+##Power function in Scala LMS
+
+```Scala
+trait PowerA { this: Arith =>
+  def power(b: Rep[Double], x: Int): Rep[Double] =
+    if (x == 0) 1.0 else b * power(b, x - 1)
+}
+```
 
 ---
 
-#Example
+#A gentle introduction to LMS
 
-contents
+##What did we just see?
+
+* ```T``` versus ```Rep[T]```
+  ** Uitleg hier
+* ```def``` versus  ```trait```
+  ** Uitleg hier
 
 
 <!-- Local Variables:  -->
