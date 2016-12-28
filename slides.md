@@ -59,9 +59,9 @@ trait PowerA { this: Arith =>
 ##What did we just see?
 
 * ```T``` versus ```Rep[T]```
-  ** Uitleg hier
+* Uitleg hier
 * ```def``` versus  ```trait```
-  ** Uitleg hier
+* Uitleg hier
 
 
 <!-- Local Variables:  -->
