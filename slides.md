@@ -59,10 +59,17 @@ trait PowerA { this: Arith =>
 ##What did we just see?
 
 * ```T``` versus ```Rep[T]```
-* Uitleg hier
 * ```def``` versus  ```trait```
-* Uitleg hier
 
+---
+
+#Characteristics
+
+---
+
+#--
+
+---
 
 <!-- Local Variables:  -->
 <!-- pandoc/write: beamer -->
