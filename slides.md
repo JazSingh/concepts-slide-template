@@ -28,9 +28,10 @@ Lightweight Modular Staging (LMS)
 #Outline
 
 * A gentle introduction to LMS
-* The LMS pipeline
+* Generative Programming
 * Language virtualization
 * Intermediate representation
+* How do we program in LMS?
 
 ---
 
@@ -63,13 +64,18 @@ trait PowerA { this: Arith =>
 
 ---
 
-#Characteristics
+#Generative Programming
 
 ---
 
-#--
+#Language Virtualization
 
 ---
+
+#Intermediate representation
+
+---
+
 
 <!-- Local Variables:  -->
 <!-- pandoc/write: beamer -->
