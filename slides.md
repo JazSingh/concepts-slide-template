@@ -66,6 +66,20 @@ trait PowerA { this: Arith =>
 
 #Generative Programming
 
+##What is generative programming?
+
+---
+
+#Generative Programming
+
+##Commonalities of LMS and generative programming
+
+---
+
+#Generative Programming
+
+##Differences of LMS and generative programming
+
 ---
 
 #Language Virtualization
