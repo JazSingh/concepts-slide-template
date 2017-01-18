@@ -384,6 +384,387 @@ But what to do for datatypes that are of your own making?
 
 ---
 
+#How to LMS: Data types
+
+Scala LMS only has pre-defined operations for standard library types.
+You add ```Rep[T]``` types to your own functions to stage them, allowing them to work on staged values.
+
+. . .
+
+Unstaged:
+```Scala
+case class Vec3(x: Double, y: Double, z: Double) {
+  def +(that: Vec3): Vec3 =
+    Vec3(this.x + that.x, this.y + that.y, this.z + that.z)
+}
+```
+
+. . .
+
+Staged:
+```Scala
+case class Vec3(x: Rep[Double], y: Rep[Double], z: Rep[Double]) {
+  def +(that: Vec3): Vec3 =
+    Vec3(this.x + that.x, this.y + that.y, this.z + that.z)
+}
+```
+---
+
+#How to LMS: Data types
+
+What about this function?
+
+Unstaged:
+```Scala
+case class Vec3(x: Double, y: Double, z: Double) {
+  def length: Double =
+    sqrt(x * x + y * y + z * z)
+}
+```
+
+. . .
+
+Staged:
+```Scala
+case class Vec3(x: Rep[Double], y: Rep[Double], z: Rep[Double]) {
+  def length: Double =
+    sqrt(x * x + y * y + z * z)
+}
+```
+
+---
+
+#A problem: undefined operations on staged types
+
+```
+[error] main.scala:9: not found: value sqrt
+[error]     sqrt(x * x + y * y + z * z)
+[error]     ^
+[error] one error found
+[error] (compile:compileIncremental) Compilation failed
+```
+
+Scala LMS defines some fundamental operations on staged types, such as integer/floating point arithmetic.
+If your staged function only uses those operations (like the + operator in the Vec3 example) you're fine.
+
+But LMS doesn't define everything in the Scala language!
+And it certainly doesn't define any third-party library functions.
+Some staged operations can't be defined in terms of other staged functions.
+We really don't want to implement ```sqrt()``` ourselves; we want to use the ```scala.math.sqrt()``` function somehow.
+That function call needs to end up in the generated code.
+We need to be able to add new operations on staged types.
+
+---
+
+#How to Stage Your Algorithm
+
+1. Add ```Rep[T]``` type annotations
+2. Define an interface for new operations on staged types
+3. Implement the interface in terms of IR nodes
+4. (optional) Define optimizations, rewriting certain patterns of IR nodes
+5. Extend code generator so new IR nodes can be turned into code
+
+---
+
+#An example: Fast Fourier Transform
+
+You can create a wave-like function by summing up a number of sine waves.
+The Fourier transform decomposes the waveform back into its sine components.
+The Fast Fourier Transform (FFT) is a fast numerical algorithm that can do this.
+
+---
+
+#An example: Fast Fourier Transform
+
+```Scala
+def fft(xs: Array[Complex]): Array[Complex] = xs match {
+  case (x :: Nil) => xs
+  case _ =>
+    val N = xs.length // assume it's a power of two
+    val (even0, odd0) = splitEvenOdd(xs)
+    val (even1, odd1) = (fft(even0), fft(odd0))
+    val (even2, odd2) = (even1 zip odd1 zipWithIndex) map {
+      case ((x, y), k) =>
+        val z = omega(k, N) * y
+        (x + z, x - z)
+    }.unzip;
+    even2 ::: odd2
+}
+```
+
+---
+
+#An example: Fast Fourier Transform
+
+```Scala
+case class Complex(re: Double, im: Double) {
+  def +(that: Complex) = Complex(this.re + that.re, this.im + that.im)
+  def *(that: Complex) = ...
+}
+
+def omega(k: Int, N: Int): Complex = {
+    val kth = -2.0 * k * Math.Pi / N
+    Complex(cos(kth), sin(kth))
+}
+
+```
+
+Note the operations we perform on doubles: arithmetic (addition, multiplication, ...) and trigonometry (sin, cos)
+
+---
+
+#An example: Fast Fourier Transform
+## Step 1: Add Rep[T] type annotations
+
+Unstaged:
+```Scala
+case class Complex(re: Double, im: Double) {
+  def +(that: Complex) = Complex(this.re + that.re, this.im + that.im)
+  def *(that: Complex) = ...
+}
+```
+
+Staged:
+```Scala
+trait FFT { this: Arith with Trig =>
+  case class Complex(re: Rep[Double], im: Rep[Double]) {
+    def + Complex(this.re + that.re, this.im + that.im)
+    def * ...
+  }
+  def omega ...
+  def fft ...
+}
+```
+---
+
+#An example: Fast Fourier Transform
+## Step 1: Add Rep[T] type annotations
+
+```Scala
+trait FFT { this: Arith with Trig =>
+  case class Complex(re: Rep[Double], im: Rep[Double]) {
+    def + Complex(this.re + that.re, this.im + that.im)
+    def * ...
+  }
+  def omega ...
+  def fft ...
+}
+```
+
+The staged version of complex numbers consists of a pair of ```Rep[Double]```
+We need to be able to do arithmetic and trigonometric operations on staged doubles.
+Fortunately, the Scala LMS library happens to define operations for ```Rep[Double]```
+
+---
+
+#An example: Fast Fourier Transform
+## Step 1: Add Rep[T] type annotations
+
+```Scala
+trait FFT { this: Arith with Trig =>
+  case class Complex(re: Rep[Double], im: Rep[Double]) {
+    def + Complex(this.re + that.re, this.im + that.im)
+    def * ...
+  }
+  def omega ...
+  def fft ...
+}
+```
+
+As an exercise, let's pretend that LMS didn't have definitions for ```Rep[Double]```.
+What if we need to define these staged operations ourselves?
+(In other words: how is ```Rep[Double]``` implemented in the LMS library?)
+If we know how to do this, we can also define staged operations on our own data types.
+
+---
+
+#An example: Fast Fourier Transform
+## Step 1: Add Rep[T] type annotations
+
+```Scala
+trait FFT { this: Arith with Trig =>
+  case class Complex(re: Rep[Double], im: Rep[Double]) {
+    def + Complex(this.re + that.re, this.im + that.im)
+    def * ...
+  }
+  def omega ...
+  def fft ...
+}
+```
+
+How to define our own staged operations that work on ```Rep[Double]```?
+We define these operations in traits and mix them in.
+The ```this: Arith with Trig``` part means: whenever the trait ```FFT``` is instantiated,
+we need to mix in traits that provide arithmetic and trigonometric operations too.
+
+---
+
+#An example: Fast Fourier Transform
+## Step 2: Define an interface for new operations on staged types
+
+Scala LMS provides a ```Base``` trait; the ```Rep[T]``` type is defined there.
+
+```Scala
+trait Arith extends Base {
+  def infix_+(x: Rep[Double], y: Rep[Double]): Rep[Double]
+  def infix_*(x: Rep[Double], y: Rep[Double]): Rep[Double]
+  ...
+}
+
+trait Trig extends Base {
+  def cos(x: Rep[Double]): Rep[Double]
+  def sin(x: Rep[Double]): Rep[Double]
+}
+```
+
+These traits contain only abstract members; they are interfaces.
+We need to create subclasses with concrete implementations.
+
+---
+
+#An example: Fast Fourier Transform
+## Step 3: Implement the interface in terms of IR nodes
+
+Scala LMS uses a node-based intermediate representation for staged expressions.
+The ```BaseExp``` class from the LMS framework defines some related types.
+```Exp[T]``` is a simple IR expression (a constant or symbol).
+```Def[T]``` is a composite operation; these operations will be converted to simple expressions.
+```BaseExp``` also defines ```Rep[T] = Exp[T]``` so staged expressions will be converted to IR expressions.
+
+---
+
+#An example: Fast Fourier Transform
+## Step 3: Implement the interface in terms of IR nodes
+
+```Scala
+trait ArithExp extends Arith with BaseExp {
+  // These case classes are IR nodes
+  case class Plus(x: Exp[Double], y: Exp[Double]) extends Def[Double]
+  case class Times(x: Exp[Double], y: Exp[Double]) extends Def[Double]
+
+  // The abstract functions defined in trait Arith are implemented here
+  def infix_+(x: Exp[Double], y: Exp[Double]) = Plus(x, y)
+  def infix_*(x: Exp[Double], y: Exp[Double]) = Times(x, y)
+}
+
+trait TrigExp extends Trig with BaseExp {
+  case class Sin(x: Exp[Double]) extends Def[Double]
+  case class Cos(x: Exp[Double]) extends Def[Double]
+
+  def sin(x: Exp[Double]) = Sin(x)
+  def cos(x: Exp[Double]) = Cos(x)
+}
+```
+
+---
+
+#An example: Fast Fourier Transform
+## Step 3: Implement the interface in terms of IR nodes
+
+```Scala
+sin(x + 2 * y) + sin(0)
+
+Plus(Sin(Plus(Sym(x), Times(Const(2), Sym(y)))), Sin(Const(0)))
+```
+
+---
+
+#An example: Fast Fourier Transform
+## Step 4: Define optimizations, rewriting certain patterns of IR nodes
+
+Scala LMS already contains a number of generic optimizations, such as dead code elimination and reusing identical expressions.
+We can define our own optimizations, both generic optimizations and domain-specific ones.
+These are again defined in traits, so you can combine them in a modular way.
+
+. . .
+
+```Scala
+trait ArithExpOpt extends ArithExp {
+  override def infix_*(x: Exp[Double], y: Exp[Double]) =
+    (x, y) match {
+      // Multiplying two constants? We can calculate that now
+      case (Const(x), Const(y)) => Const(x * y)
+      // 1 * x = x, and vice versa
+      case (x, Const(1)) => x
+      case (Const(1), x) => x
+      // Base case: apply the regular base function
+      case _ => super.infix_*(x, y)
+    }
+}
+```
+
+---
+
+#An example: Fast Fourier Transform
+## Step 4: Define optimizations, rewriting certain patterns of IR nodes
+
+```Scala
+trait TrigExpOptFFT extends TrigExpOpt {
+  override def cos(x: Exp[Double]) = x match {
+    case Const(x) if { val z = x / math.Pi / 0.5; z != 0 && z == z.toInt } => Const(0.0)
+    case _ => super.cos(x)
+  }
+}
+```
+
+---
+
+#An example: Fast Fourier Transform
+## Step 5: Extend code generator so new IR nodes can be turned into code
+
+Finally, IR nodes have to be converted to actual code.
+The LMS framework provides a ```ScalaGenBase``` class that we can use.
+We only have to define what to do when the generator encounters one of the new nodes we added.
+
+```Scala
+trait ScalaGenArith extends ScalaGenBase with ArithExp {
+  override def emitNode(sym: Sym[T], node: Def[T]) =
+    node match {
+      // val z = x + y
+      case Plus(x, y) => println("val %s = %x + %y".format(sym, x, y))
+      // val z = x * y
+      case Times(x, y) => println("val %s = %x * %y".format(sym, x, y))
+      case _ => super.emitNode(sym, node)
+    }
+}
+```
+
+It's also possible to generate code for other languages if you define your own generator.
+Scala LMS even comes with a CGenBase trait that can generate C code from your staged Scala functions.
+
+---
+
+#An example: Fast Fourier Transform
+## Step 5: Extend code generator so new IR nodes can be turned into code
+
+The ```CompileScala``` trait defines a ```compile``` function that lets you load the generated code immediately into the running program.
+Essentially, ```compile``` "unstages" your staged function (```Rep[A] => Rep[B]```) into a regular function (```A => B```).
+This function can then be called:
+
+```Scala
+val fftCompiled = compile(fft)
+// Now we can call fftCompiled with regular values
+// Just like any other function in the program
+fftCompiled(Array(1.0,0.0, 1.0,0.0, 2.0,0.0, 2.0,0.0))
+
+> Array(6.0,0.0, -1.0,1.0, 0.0,0.0, -1.0,-1.0)
+```
+
+---
+
+#Drawbacks of LMS
+
+* The Scala LMS library only implements staged operations for a subset of Scala.
+* Debugging is painful - LMS can give obscure errors, run into an infinite loop, or generate wrong code.
+* Documentation is lacking.
+
+---
+
+#Conclusion
+
+TODO
+
+---
 
 <!-- Local Variables:  -->
 <!-- pandoc/write: beamer -->
