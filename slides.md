@@ -29,6 +29,7 @@ Lightweight Modular Staging (LMS)
 
 * A gentle introduction to LMS
 * Generative Programming
+* How to write a multi-staged program
 * Language virtualization
 * Intermediate representation
 * How do we program in LMS?
@@ -61,6 +62,46 @@ trait PowerA { this: Arith =>
 
 * ```T``` versus ```Rep[T]```
 * ```def``` versus  ```trait```
+
+---
+
+#Productivity vs Performance
+
+## Software performance depends more on programmer productivity
+* Processor clock speed doesn't double every 18 months
+* High-level programming is hard to translate to efficient code 
+* Shift towards big data workloads
+
+## Result: Hand-optimized programs (BAD IDEA)
+* abandoning all best practices and benefits of high-level programming
+* programs become hard to read, maintain, verify...
+* this attracts bugs and security vulnerabilities
+
+---
+
+#Solution: Generative Programming
+
+## Write a program generator
+* Produces the code of a program as output
+* Reorganization of a programs' execution into stages, also called multi-stage programming
+
+---
+
+# How do we write MSP-programs?
+* A single-stage program is developed, implemented and tested
+* Ensure the the program can be used in a staged manner. Otherwise "refactor"
+* Introduce staging annotations
+
+---
+
+# Generative programming results in:
+## From 
+* Compilation-based program execution:
+* Compile-time, run-time.
+
+## To
+* Generation-based program execution:
+* Generation-time, Compile-time, run-time.
 
 ---
 
