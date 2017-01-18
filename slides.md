@@ -226,14 +226,13 @@ power(b, 3)    vs.   fac(n)
 . . .
 
 Make use of a lambda function:
+
 ```Scala
 def fac: Rep[Int => Int] = doLambda { n => 
   if (n == 0) 1
   else n * fac(n-1)
 }
 ```
-
-. . .
 
 Now we can try it again:
 ```Scala
@@ -281,9 +280,9 @@ def apply(x3: Double): Double = {
 
 #How to LMS: Generating code
 
-##Optimalized power function
+##Optimized power function
 ```Scala
-def power(b: Rep[Double], p: Int): Rep[Double] = {
+def powerOpt(b: Rep[Double], p: Int): Rep[Double] = {
   def loop(x: Rep[Double], ac: Rep[Double], 
                            y: Int): Rep[Double] = 
     if (y == 0)
@@ -302,7 +301,7 @@ def power(b: Rep[Double], p: Int): Rep[Double] = {
 #How to LMS: Generating code
 
 ```Scala
-power(b, 3)
+powerOpt(b, 3)
 ```
 
 ##Generated code:
@@ -316,7 +315,7 @@ def apply(x3: Double): Double = {
 
 . . .
 
-LMS can generate the same code for different source codes.
+LMS can generate the same code from different staged codes.
 
 ---
 
@@ -328,12 +327,12 @@ But not per se.
 
 For example:
 ```Scala
-power(b, 6)
+powerOpt(b, 6)
 ```
 
 . . .
 
-##Generated code of optimalized version
+##Generated code of optimized version
 ```Scala
 def apply(x4:Double): Double = {
   val x5 = x4 * x4
@@ -414,7 +413,7 @@ Generated code is not meant to be human-readable
 
 The previous examples only considered:
 
-* Rep[Int] (and Rep[Int => Int])
+* Rep[Int]
 * Rep[Double]
 * Rep[Char]
 * Rep[Boolean]
