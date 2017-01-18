@@ -94,13 +94,13 @@ trait PowerA { this: Arith =>
 
 ---
 
-# Generative programming results in:
+# Another stage!
 ## From 
 * Compilation-based program execution:
 * Compile-time, run-time.
 
 ## To
-* Generation-based program execution:
+* Generated program execution:
 * Generation-time, Compile-time, run-time.
 
 ---
