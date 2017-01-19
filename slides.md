@@ -143,9 +143,9 @@ def power(b: String, n: Int): String =
 ---
 
 # How do we write MSP-programs?
-* A single-stage program is developed, implemented and tested
-* Ensure the the program can be used in a staged manner. Otherwise "refactor"
-* Introduce staging annotations
+1. A single-stage program is developed, implemented and tested
+2. Ensure the the program can be used in a staged manner. Otherwise "refactor"
+3. Introduce staging annotations
 
 ---
 
@@ -698,30 +698,14 @@ trait FFT { this: Arith with Trig =>
   def fft ...
 }
 ```
+
 ---
 
 #An example: Fast Fourier Transform
 ## Step 1: Add Rep[T] type annotations
 
-```Scala
-trait FFT { this: Arith with Trig =>
-  case class Complex(re: Rep[Double], im:
-    Rep[Double]) {
-    def + Complex(this.re + that.re,
-      this.im + that.im)
-    def * ...
-  }
-  def omega ...
-  def fft ...
-}
-```
----
-
-#An example: Fast Fourier Transform
-## Step 1: Add Rep[T] type annotations
-
-The staged version of complex numbers consists of a pair of ```Rep[Double]```
-We need to be able to do arithmetic and trigonometric operations on staged doubles.
+* The staged version of complex numbers consists of a pair of ```Rep[Double]```
+* We need to be able to do arithmetic and trigonometric operations on staged doubles.
 Fortunately, the Scala LMS library happens to define operations for ```Rep[Double]```
 
 ---
@@ -729,46 +713,15 @@ Fortunately, the Scala LMS library happens to define operations for ```Rep[Doubl
 #An example: Fast Fourier Transform
 ## Step 1: Add Rep[T] type annotations
 
-```Scala
-trait FFT { this: Arith with Trig =>
-  case class Complex(re: Rep[Double], im:
-    Rep[Double]) {
-    def + Complex(this.re + that.re,
-      this.im + that.im)
-    def * ...
-  }
-  def omega ...
-  def fft ...
-}
-```
----
-
-#An example: Fast Fourier Transform
-## Step 1: Add Rep[T] type annotations
-
-As an exercise, let's pretend that LMS didn't have definitions for ```Rep[Double]```.
-What if we need to define these staged operations ourselves?
+* As an exercise, let's pretend that LMS didn't have definitions for ```Rep[Double]```.
+* What if we need to define these staged operations ourselves?
 (In other words: how is ```Rep[Double]``` implemented in the LMS library?)
-If we know how to do this, we can also define staged operations on our own data types.
+* If we know how to do this, we can also define staged operations on our own data types.
 
 ---
 
 #An example: Fast Fourier Transform
 ## Step 1: Add Rep[T] type annotations
-
-```Scala
-trait FFT { this: Arith with Trig =>
-  case class Complex(re: Rep[Double],
-    im: Rep[Double]) {
-    def + Complex(this.re + that.re,
-      this.im + that.im)
-    def * ...
-  }
-  def omega ...
-  def fft ...
-}
-```
----
 
 * How to define our own staged operations that work on ```Rep[Double]```?
 * We define these operations in traits and mix them in.
@@ -801,8 +754,8 @@ trait Trig extends Base {
 #An example: Fast Fourier Transform
 ## Step 2: Define an interface for new operations on staged types
 
-These traits contain only abstract members; they are interfaces.
-We need to create subclasses with concrete implementations.
+* These traits contain only abstract members; they are interfaces.
+* We need to create subclasses with concrete implementations.
 
 ---
 
@@ -860,9 +813,9 @@ trait TrigExp extends Trig with BaseExp {
 sin(x + 2 * y) + sin(0)
 
 Plus(Sin(Plus(Sym(x),
-Times(Const(2),
-Sym(y)))),
-Sin(Const(0)))
+  Times(Const(2),
+  Sym(y)))),
+  Sin(Const(0)))
 ```
 
 ---
@@ -914,8 +867,8 @@ trait TrigExpOptFFT extends TrigExpOpt {
 #An example: Fast Fourier Transform
 ## Step 5: Extend code generator so new IR nodes can be turned into code
 
-Finally, IR nodes have to be converted to actual code.
-The LMS framework provides a ```ScalaGenBase``` class that we can use.
+* Finally, IR nodes have to be converted to actual code.
+* The LMS framework provides a ```ScalaGenBase``` class that we can use.
 We only have to define what to do when the generator encounters one of the new nodes we added.
 
 ---
@@ -953,8 +906,8 @@ trait ScalaGenArith extends ScalaGenBase
 #An example: Fast Fourier Transform
 ## Step 5: Extend code generator so new IR nodes can be turned into code
 
-The ```CompileScala``` trait defines a ```compile``` function that lets you load the generated code immediately into the running program.
-Essentially, ```compile``` "unstages" your staged function (```Rep[A] => Rep[B]```) into a regular function (```A => B```).
+* The ```CompileScala``` trait defines a ```compile``` function that lets you load the generated code immediately into the running program.
+* Essentially, ```compile``` "unstages" your staged function (```Rep[A] => Rep[B]```) into a regular function (```A => B```).
 This function can then be called:
 
 ```Scala
