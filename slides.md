@@ -23,6 +23,10 @@ Lightweight Modular Staging (LMS)
 
 'A library-based multi-stage programming approach that uses types to distinguish between binding time.'
 
+. . .
+
+Lightweight Modular Staging (LMS) is a runtime code generation approach. The framework provides a library of core components for building high performance code generators and embedded compilers in Scala.
+
 ---
 
 #Outline
@@ -30,7 +34,6 @@ Lightweight Modular Staging (LMS)
 * A gentle introduction to LMS
 * Generative Programming
 * How to write a multi-staged program
-* Language virtualization
 * Intermediate representation
 * How do we program in LMS?
 
@@ -45,6 +48,8 @@ def power(b: Double, x: Int): Double =
   if (x == 0) 1.0 else b * power(b, x - 1)
 ```
 
+. . .
+
 ##Power function in Scala LMS
 
 ```Scala
@@ -58,10 +63,61 @@ trait PowerA { this: Arith =>
 
 #A gentle introduction to LMS
 
-##What did we just see?
+##What is multi-stage programming (MSP) and Generative Programming?
 
-* ```T``` versus ```Rep[T]```
-* ```def``` versus  ```trait```
+* MSP is a form of metaprogramming in which compilation is divided into a series of intermediate phases, allowing typesafe run-time code generation.
+* In LMS the stages are defined by the types that are used: ```T``` (compile-time) vs ```Rep[T]``` (run-time).
+
+---
+
+#Generative Programming
+
+##Commonalities between LMS and generative programming languages
+
+* Code generators and generated code are expressed in the same program.
+* Objects that are live within the generator’s heap can be accessed from generated code if the code is invoked directly (cross-stage persistence).
+
+---
+
+#Generative Programming
+
+##Commonalities between LMS and generative programming languages - Cont.
+
+* Staged expressions inherit the static scope of the generator and if the generator is well-typed so is the generated code.
+* Data types representing staged expressions are inaccessible to the program itself making optimizations safe that preserve only semantic but not structural equality.
+
+---
+
+#Generative Programming
+
+##Differences between LMS and generative programming languages
+
+* Staging is determined entirely by types, no special syntax is required. Other languages use quasi-quotations:
+```Scala
+def power(b: String, n: Int): String =
+  if (n == 0) s"1.0"
+  else s"( b * { power(b, n - 1) })"
+```
+* Given a sufficiently expressive programming language, the whole framework can be implemented as a library.
+
+---
+
+#Generative Programming
+
+##Differences between LMS and generative programming languages - Cont.
+
+* Staged code fragments are composed through explicit operations.
+* The relative evaluation order of expressions is preserved across stage boundaries. There is no danger of accidentally omitting, reordering, or duplicating computations.
+
+---
+
+#Generative Programming
+
+##Drawbacks of LMS
+
+* The Scala LMS library only implements staged operations for a subset of Scala.
+* Debugging is painful - LMS can give obscure errors, run into an infinite loop, or generate wrong code.
+* Documentation is lacking.
 
 ---
 
@@ -105,33 +161,75 @@ trait PowerA { this: Arith =>
 
 ---
 
-#Generative Programming
+#Intermediate representation
+##Trees
 
-##What is generative programming?
+* The goal is to get a representation of the implementation which supports optimizing compilation.
+* A common approach is the use of expression trees which resemble abstract syntax trees (AST) with the following types:
 
+```Scala
+type Exp[T]     // atomic:     Sym, Const
+type Def[T]     // composite:  Exp + Exp, Exp * Exp, ...
+type Stm[T]     // statement:  val x = Def
+type Block[T]   // blocks:     { Stm; ...; Stm; Exp }
+```
 ---
 
-#Generative Programming
+#Intermediate representation
+##Trees
 
-##Commonalities of LMS and generative programming
+* Code is generated from the tree by using Forward Traversal
+* Optimizations are applied by applying transformations on the tree.
 
----
+. . .
 
-#Generative Programming
-
-##Differences of LMS and generative programming
-
----
-
-#Drawbacks of LMS
-
-* The Scala LMS library only implements staged operations for a subset of Scala.
-* Debugging is painful - LMS can give obscure errors, run into an infinite loop, or generate wrong code.
-* Documentation is lacking.
+* PROBLEM: Phase Ordering: 'How to determine the ideal sequence of optimization phases to apply to each function or program so as to maximize the gain in speed, code-size, power, or any combination of these performance constraints.`
+* Different orderings can have major impact on performance, especially in performance-critical applications.
 
 ---
 
 #Intermediate representation
+##Graphs
+
+* Directed Graphs "Sea of nodes"
+* Two types of nodes:
+(1) Expressions: constants and symbols
+(2) Definitions: composite operations
+* Each definition has at least one associated symbol (expression) and refers to other definitions by the symbols the other definitions are associated with.
+
+---
+
+#Intermediate representation
+##Graphs
+
+If we consider a purely functional language subset: Graphs..
+
+* Allow for possibilities for aggressive optimizations;
+* Make optimizations easier to implement;
+* Mitigate the phase ordering problem.
+* Because we rely on referential transparency: the value of an expression is always the same, no matter when
+and where it is computed, so optimizations do not need to check
+availability or lifetimes of expressions.
+
+---
+
+#Intermediate representation
+##Graphs - Optimizations
+
+* Global common subexpression
+elimination (CSE): elimination of identical expressions (evaluate to the same value);
+* Dead code elimination (DCE): finding all reachable statements and discarding everything else.
+* Many many more optimizations possible.
+
+---
+
+#Intermediate representation
+##Graphs - Back to code
+
+* Code motion algorithm
+* The algorithm will try to push statements inside conditional branches and lift
+statements out of loops.
+* Code motion depends on dependency and frequency information but not directly on data-flow information.
 
 ---
 
@@ -499,6 +597,7 @@ Compilation failed
 * If your staged function only uses those operations (like the + operator in the Vec3 example) you're fine.
 
 ---
+
 #A problem: undefined operations on staged types
 
 * *But LMS doesn't define everything in the Scala language!* And it certainly doesn't define any third-party library functions.
@@ -582,6 +681,7 @@ def fftt ...
 ```
 
 ---
+
 #An example: Fast Fourier Transform
 ## Step 1: Add Rep[T] type annotations
 
@@ -642,6 +742,7 @@ trait FFT { this: Arith with Trig =>
 }
 ```
 ---
+
 #An example: Fast Fourier Transform
 ## Step 1: Add Rep[T] type annotations
 
@@ -697,6 +798,9 @@ trait Trig extends Base {
 ```
 ---
 
+#An example: Fast Fourier Transform
+## Step 2: Define an interface for new operations on staged types
+
 These traits contain only abstract members; they are interfaces.
 We need to create subclasses with concrete implementations.
 
@@ -733,6 +837,7 @@ trait ArithExp extends Arith with BaseExp {
 ```
 
 ---
+
 #An example: Fast Fourier Transform
 ## Step 3: Implement the interface in terms of IR nodes
 
@@ -814,12 +919,15 @@ The LMS framework provides a ```ScalaGenBase``` class that we can use.
 We only have to define what to do when the generator encounters one of the new nodes we added.
 
 ---
+
 #An example: Fast Fourier Transform
 ## Step 5: Extend code generator so new IR nodes can be turned into code
 
 ```Scala
-trait ScalaGenArith extends ScalaGenBase with ArithExp {
-  override def emitNode(sym: Sym[T], node: Def[T]) =
+trait ScalaGenArith extends ScalaGenBase
+  with ArithExp {
+  override def emitNode(sym: Sym[T],
+      node: Def[T]) =
     node match {
       // val z = x + y
       case Plus(x, y) =>
@@ -833,6 +941,7 @@ trait ScalaGenArith extends ScalaGenBase with ArithExp {
 ```
 
 ---
+
 #An example: Fast Fourier Transform
 ## Step 5: Extend code generator so new IR nodes can be turned into code
 
@@ -858,7 +967,6 @@ fftCompiled(Array(1.0,0.0, 1.0,0.0, 2.0,0.0, 2.0,0.0))
 ```
 
 ---
-
 
 #Conclusion
 
