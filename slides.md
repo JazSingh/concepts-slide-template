@@ -781,7 +781,8 @@ trait ArithExp extends Arith with BaseExp {
   case class Times(x: Exp[Double], y: Exp[Double])
     extends Def[Double]
 
-  // The abstract functions defined in trait Arith are implemented here
+  // The abstract functions defined in...
+  // trait Arith are implemented here
   def infix_+(x: Exp[Double], y: Exp[Double]) =
     Plus(x, y)
   def infix_*(x: Exp[Double], y: Exp[Double]) =
