@@ -161,7 +161,7 @@ def power(b: String, n: Int): String =
 
 ---
 
-#Intermediate representation
+#Intermediate representation (IR)
 ##Trees
 
 * The goal is to get a representation of the implementation which supports optimizing compilation.
@@ -219,7 +219,8 @@ availability or lifetimes of expressions.
 * Global common subexpression
 elimination (CSE): elimination of identical expressions (evaluate to the same value);
 * Dead code elimination (DCE): finding all reachable statements and discarding everything else.
-* Many many more optimizations possible.
+* We can define our own optimizations, both generic optimizations and domain-specific ones.
+* Many other optimizations implemented
 
 ---
 
@@ -600,7 +601,7 @@ Compilation failed
 
 #A problem: undefined operations on staged types
 
-* *But LMS doesn't define everything in the Scala language!* And it certainly doesn't define any third-party library functions.
+* But LMS doesn't define everything in the Scala language! And it certainly doesn't define any third-party library functions.
 * Some staged operations can't be defined in terms of other staged functions. We really don't want to implement ```sqrt()``` ourselves; we want to use the ```scala.math.sqrt()``` function somehow.
 * That function call needs to end up in the generated code.
 * We need to be able to add new operations on staged types.
@@ -968,9 +969,15 @@ fftCompiled(Array(1.0,0.0, 1.0,0.0, 2.0,0.0, 2.0,0.0))
 
 ---
 
-#Conclusion
+#Summary
 
-TODO
+* LMS is a powerful tool in creating high performance DSL's.
+* Staging based on types makes it different from current approaches.
+* Programs are hard to debug
+* The intermediate representation allows for aggressive optimizations.
+* We can define our own optimizations, both generic optimizations and domain-specific ones.
+
+
 
 
 <!-- Local Variables:  -->
