@@ -33,7 +33,6 @@ Lightweight Modular Staging (LMS) is a runtime code generation approach. The fra
 
 * A gentle introduction to LMS
 * Generative Programming
-* How to write a multi-staged program
 * Intermediate representation
 * How do we program in LMS?
 
