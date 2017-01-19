@@ -835,7 +835,8 @@ trait ArithExpOpt extends ArithExp {
   override def infix_*(x: Exp[Double],
     y: Exp[Double]) =
     (x, y) match {
-      // Multiplying two constants? We can calculate that now
+      // Multiplying two constants?
+      // We can calculate that now
       case (Const(x), Const(y)) => Const(x * y)
       // 1 * x = x, and vice versa
       case (x, Const(1)) => x
@@ -909,15 +910,23 @@ trait ScalaGenArith extends ScalaGenBase
 
 * The ```CompileScala``` trait defines a ```compile``` function that lets you load the generated code immediately into the running program.
 * Essentially, ```compile``` "unstages" your staged function (```Rep[A] => Rep[B]```) into a regular function (```A => B```).
+
+---
+
+#An example: Fast Fourier Transform
+## Step 5: Extend code generator so new IR nodes can be turned into code
+
 This function can then be called:
 
 ```Scala
 val fftCompiled = compile(fft)
 // Now we can call fftCompiled with regular values
 // Just like any other function in the program
-fftCompiled(Array(1.0,0.0, 1.0,0.0, 2.0,0.0, 2.0,0.0))
+fftCompiled(Array(1.0,0.0, 1.0,0.0,
+   2.0,0.0, 2.0,0.0))
 
-> Array(6.0,0.0, -1.0,1.0, 0.0,0.0, -1.0,-1.0)
+> Array(6.0,0.0, -1.0,1.0,
+  0.0,0.0, -1.0,-1.0)
 ```
 
 ---
