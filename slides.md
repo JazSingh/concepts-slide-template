@@ -227,9 +227,7 @@ elimination (CSE): elimination of identical expressions (evaluate to the same va
 ##Graphs - Back to code
 
 * Code motion algorithm
-* The algorithm will try to push statements inside conditional branches and lift
-statements out of loops.
-* Code motion depends on dependency and frequency information but not directly on data-flow information.
+* Code motion is a technique for improving the efficiency of a program by avoiding unnecessary recomputations of a value at runtime. This is achieved by replacing the original computations of a program by temporary variables that are initialized correctly at suitable program points.
 
 ---
 
